@@ -1,0 +1,49 @@
+---
+
+- name: install mysql
+  apt:
+   name="{{ item }}"
+   state=present
+   update_cache=true
+  with_items:
+   - python3-mysqldb
+   - mysql-server
+   - libmysqlclient-dev 
+   - python3-pip
+
+- name: Create a new database
+  mysql_db:
+    name: dbsosmed
+    state: present
+  register: database_exists
+
+- name: Create database user
+  mysql_user:
+    name: devopscilsy
+    password: 1234567890
+    priv: '*.*:ALL'
+    state: present
+
+- name: Copy database dump file
+  copy:
+    src: sosial-media/dump.sql
+    dest: /tmp
+
+- name: Restore database
+  mysql_db:
+    name: dbsosmed
+    state: import
+    target: /tmp/dump.sql
+  when: database_exists.changed
+
+# - name: Configure SELinux to start mysql on any port
+#   seboolean: name=mysql_connect_any state=true persistent=yes
+#   when: ansible_selinux.status == "enabled"
+
+# - name: Create Mysql configuration file
+#   template: src=my.cnf.j2 dest=/etc/my.cnf
+#   notify:
+#   - restart mysql
+
+- name: Start Mysql Service
+  service: name=mysql state=started enabled=yes

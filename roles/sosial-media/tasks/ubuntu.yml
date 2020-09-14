@@ -1,0 +1,11 @@
+---
+
+- name: Copy source code
+  copy:
+    src: sosial-media/
+    dest: /var/www/html
+    owner: root
+    group: root
+    mode: '0755'
+    backup: yes
+  notify: restart ssh
